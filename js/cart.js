@@ -6,6 +6,8 @@ new Vue({
         totalMoney: 0,
         productList: [],
         checkAllFlag: false,
+        delFlag:false,
+        curProduct:'',
     }, filters: {
         formatMoney: function (value) {
             return "¥ " + value.toFixed(2);
@@ -21,7 +23,7 @@ new Vue({
             this.$http.get("http://192.168.31.143:8000/data/cartData.json")
                 .then(response => {
                     this.productList = response.data.result.list;
-                    this.totalMoney = response.data.result.totalMoney;
+                  
                     console.log(response);
                 }).catch(function (error) {
                     console.log(error);
@@ -37,8 +39,8 @@ new Vue({
                 } else {
                     product.productQuantity--;
                 }
-
             }
+            this.calcTotalPrice();
         },
         selectedProduct: function (item) {
             if (typeof item.checked == 'undefined') {//判断实体是否存在checked字段
@@ -47,6 +49,7 @@ new Vue({
             } else {
                 item.checked = !item.checked
             }
+            this.calcTotalPrice();
         },
         checkAll: function (ischeck) {
             this.checkAllFlag = ischeck;
@@ -60,7 +63,25 @@ new Vue({
                 }
 
             })
+            this.calcTotalPrice();
 
+        },
+        calcTotalPrice:function(){
+            this.totalMoney  =0;
+            this.productList.forEach((value, index) => {
+                if (value.checked) {
+                  this.totalMoney += value.productPrice * value.productQuantity;
+                }
+            })
+        },
+        delConfirm:function(item){
+            this.delFlag = true;
+            this.curProduct = item;
+        },
+        delProdyct:function(item){
+          var index =  this.productList.indexOf(this.curProduct);
+          this.productList.splice(index,1);//对原生数组进行操作，而slice会返回新的数组
+          this.delFlag = false;
         }
     }
 });
